@@ -26,10 +26,10 @@ namespace ClimateGame
             popModifiers = new ModifierCollection("Modifiers", true,
                 new List<IPopulationModifier>
                 {
-                    new ConstantModifier("Death", 0.0001, 40)
+                    new ConstantModifier("Death", -0.2, 40)
                 });
 
-            popCreator = new ConstantCreator("Births", 0.1, 15, 40);
+            popCreator = new ConstantCreator("Births", (double)(0.5*2.1) / (40 - 15), 15, 40);
         }
 
         public void Tick()
