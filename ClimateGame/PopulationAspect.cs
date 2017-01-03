@@ -36,7 +36,8 @@ namespace ClimateGame
         {
             population.Create(popCreator);
             population.Modify(popModifiers);
-            Console.WriteLine($"Population: {population.Count}");
+
+            World.Instance.Stats.Population = population.Count;
         }
 
     }
