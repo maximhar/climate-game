@@ -10,6 +10,12 @@ namespace ClimateGame
     {
         static void Main(string[] args)
         {
+            World.Instance.Initialize();
+            while(true)
+            {
+                World.Instance.Tick();
+                Console.ReadLine();
+            }
         }
     }
 }

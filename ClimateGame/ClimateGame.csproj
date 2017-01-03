@@ -42,8 +42,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConstantCreator.cs" />
+    <Compile Include="ConstantModifier.cs" />
+    <Compile Include="ExponentialModifier.cs" />
+    <Compile Include="Generation.cs" />
+    <Compile Include="IAspect.cs" />
+    <Compile Include="IPopulationCreator.cs" />
+    <Compile Include="IPopulationModifier.cs" />
+    <Compile Include="ModifierCollection.cs" />
+    <Compile Include="Population.cs" />
+    <Compile Include="PopulationAspect.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="World.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
