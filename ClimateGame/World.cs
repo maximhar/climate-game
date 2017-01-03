@@ -11,7 +11,6 @@ namespace ClimateGame
         private static readonly World instance = new World();
 
         private PopulationAspect populationAspect = new PopulationAspect();
-        private UInt32 year = 2000;
 
         private World()
         { }
@@ -21,14 +20,14 @@ namespace ClimateGame
             get { return instance; }
         }
 
-        public UInt32 Year
-        {
-            get { return year; }
-            private set { year = value; }
-        }
+        public UInt32 Year { get; private set; }
+
+        public Stats Stats { get; private set; }
 
         public void Initialize()
         {
+            Stats = new Stats();
+            Year = 2000;
             populationAspect.Initialize();
         }
 
@@ -37,6 +36,7 @@ namespace ClimateGame
             Year++;
 
             populationAspect.Tick();
+            Stats.Print();
         }
     }
 }
