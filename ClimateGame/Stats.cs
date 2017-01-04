@@ -64,6 +64,10 @@ namespace ClimateGame
             row.Append('-', columnsMax-1);
             row.Append(Generations.OrderBy(g => g.YearOfBirth).First().Age);
             Console.WriteLine(row.ToString());
+            var cancerK = World.Instance.DependencyManager.GetDouble("Cancer.K");
+            var birthsK = World.Instance.DependencyManager.GetDouble("Births.K");
+            Console.WriteLine($"Birth rate: {birthsK.LastValue}");
+            Console.WriteLine($"Cancer rate: {cancerK.LastValue}");
         }
     }
 }
