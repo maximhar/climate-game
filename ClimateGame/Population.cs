@@ -50,6 +50,8 @@ namespace ClimateGame
             {
                 generations.Remove(key);
             }
+
+            World.Instance.Stats.Generations = generations.Values.ToList();
         }
         
         private void Add(Generation gen)
