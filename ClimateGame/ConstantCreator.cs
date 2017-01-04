@@ -8,23 +8,23 @@ namespace ClimateGame
 {
     class ConstantCreator : IPopulationCreator
     {
-        private double k;
-        private UInt32 startAge;
-        private UInt32 endAge;
+        public double K { get; set; }
+        public UInt32 StartAge { get; set; }
+        public UInt32 EndAge { get; set; }
 
         public string Name { get; }
 
         public ConstantCreator(string name, double k, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
         {
             Name = name;
-            this.k = k;
-            this.startAge = startAge;
-            this.endAge = endAge;
+            K = k;
+            StartAge = startAge;
+            EndAge = endAge;
         }
 
         public Generation CreateGeneration(Generation gen)
         {
-            double rate = (gen.Age >= startAge && gen.Age < endAge) ? k : .0;
+            double rate = (gen.Age >= StartAge && gen.Age < EndAge) ? K : .0;
             double change = gen.Count * rate;
             return new Generation(World.Instance.Year, change);
         }
