@@ -19,7 +19,7 @@ namespace ClimateGame
 
         private void PrintPyramid()
         {
-            int columnsMax = Math.Min(80, Generations.Count);
+            int columnsMax = Math.Min(100, Generations.Count);
             const int rowsMax = 30;
             float gensPerColumn = (float)Generations.Count / columnsMax;
             int popPerRow = (int)Math.Round(Generations.Max(g => g.Count) / (rowsMax-1));
@@ -43,20 +43,25 @@ namespace ClimateGame
             }
 
             StringBuilder row = new StringBuilder();
+            row.Append(' ', columnsMax);
+            row.Append(Generations.Max(g => g.Count));
+            Console.WriteLine(row.ToString());
+            row.Clear();
             for (int i = rowsMax-1; i >= 0; i--)
             {
                 for (int j = columnsMax-1; j >= 0; j--)
                 {
                     if ((columnValues[j] / columnGens[j]) >= i)
-                        row.Append("X");
+                        row.Append("█");
                     else
                         row.Append(" ");
                 }
+                row.Append('|');
                 Console.WriteLine(row.ToString());
                 row.Clear();
             }
             row.Append("0");
-            row.Append(' ', columnsMax);
+            row.Append('-', columnsMax-1);
             row.Append(Generations.OrderBy(g => g.YearOfBirth).First().Age);
             Console.WriteLine(row.ToString());
         }
