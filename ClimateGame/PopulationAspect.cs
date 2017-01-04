@@ -30,8 +30,8 @@ namespace ClimateGame
                      new ExponentialModifier("Heart", -0.093, 0.12, 97.0),
                      new ExponentialModifier("Respiratory", -0.055, 0.09, 105.0),
                      new ExponentialModifier("Nervous", -0.031, 0.10, 105.0),
-                     new ConstantModifier("Road accidents", -0.00004, 18),
-                     new ConstantModifier("Work accidents", -0.000005, 18, 60),
+                     new ConstantModifier("RoadAccidents", -0.00004, 18),
+                     new ConstantModifier("WorkAccidents", -0.000005, 18, 60),
                      new ConstantModifier("Childhood", -0.005, 0, 5),
                      new ConstantModifier("Crime", -0.00001, 18)
                 });
