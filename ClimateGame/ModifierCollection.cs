@@ -24,6 +24,18 @@ namespace ClimateGame
             }
         }
 
+        public IPopulationModifier this[int i]
+        {
+            get
+            {
+                return modifiers[i];
+            }
+            set
+            {
+                modifiers[i] = value;
+            }
+        }
+
         public void AddModifier(IPopulationModifier modifier)
         {
             modifiers.Add(modifier);
