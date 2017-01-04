@@ -44,11 +44,14 @@
   <ItemGroup>
     <Compile Include="ConstantCreator.cs" />
     <Compile Include="ConstantModifier.cs" />
+    <Compile Include="DependencyManager.cs" />
+    <Compile Include="DependentVariable.cs" />
     <Compile Include="ExponentialModifier.cs" />
     <Compile Include="Generation.cs" />
     <Compile Include="IAspect.cs" />
     <Compile Include="IPopulationCreator.cs" />
     <Compile Include="IPopulationModifier.cs" />
+    <Compile Include="ITickable.cs" />
     <Compile Include="MedicineAspect.cs" />
     <Compile Include="ModifierCollection.cs" />
     <Compile Include="Population.cs" />

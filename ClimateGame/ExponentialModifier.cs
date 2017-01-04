@@ -9,11 +9,11 @@ namespace ClimateGame
     class ExponentialModifier : IPopulationModifier
     {
         // Linear coefficient
-        public double K { get; set; }
+        public DependentVariable<double> K { get; set; }
         // Exponential coefficient
-        public double K2 { get; set; }
+        public DependentVariable<double> K2 { get; set; }
         // Offset (shifts the function left/right, but leaves slope shape the same)
-        public double O { get; set; }
+        public DependentVariable<double> O { get; set; }
 
         public UInt32 StartAge { get; set; }
         public UInt32 EndAge { get; set; }
@@ -23,9 +23,9 @@ namespace ClimateGame
         public ExponentialModifier(String name, double k, double k2, double o, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
         {
             Name = Name;
-            K = k;
-            K2 = k2;
-            O = o;
+            K = World.Instance.DependencyManager.GetDouble(name + ".K", k);
+            K2 = World.Instance.DependencyManager.GetDouble(name + ".K2", k2);
+            O = World.Instance.DependencyManager.GetDouble(name + ".O", o);
             StartAge = startAge;
             EndAge = endAge;
         }

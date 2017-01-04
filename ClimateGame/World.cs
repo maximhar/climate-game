@@ -11,6 +11,7 @@ namespace ClimateGame
         private static readonly World instance = new World();
 
         private PopulationAspect populationAspect = new PopulationAspect();
+        private MedicineAspect medicineAspect = new MedicineAspect();
 
         private World()
         { }
@@ -22,13 +23,17 @@ namespace ClimateGame
 
         public UInt32 Year { get; private set; }
 
+        public DependencyManager DependencyManager { get; private set; }
+
         public Stats Stats { get; private set; }
 
         public void Initialize()
         {
             Stats = new Stats();
             Year = 2000;
+            DependencyManager = new DependencyManager();
             populationAspect.Initialize();
+            medicineAspect.Initialize();
         }
 
         public void Tick()
@@ -36,6 +41,9 @@ namespace ClimateGame
             Year++;
 
             populationAspect.Tick();
+            medicineAspect.Tick();
+
+            DependencyManager.Tick();
             Stats.Print();
         }
     }

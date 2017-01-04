@@ -8,7 +8,7 @@ namespace ClimateGame
 {
     class ConstantModifier : IPopulationModifier
     {
-        public double K { get; set; }
+        public DependentVariable<double> K { get; set; }
         public UInt32 StartAge { get; set; }
         public UInt32 EndAge { get; set; }
 
@@ -17,7 +17,7 @@ namespace ClimateGame
         public ConstantModifier(string name, double k, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
         {
             Name = name;
-            K = k;
+            K = World.Instance.DependencyManager.GetDouble(name + ".K", k);
             StartAge = startAge;
             EndAge = endAge;
         }
