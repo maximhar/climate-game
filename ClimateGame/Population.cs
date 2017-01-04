@@ -10,7 +10,7 @@ namespace ClimateGame
     {
         private SortedDictionary<UInt32, Generation> generations = new SortedDictionary<uint, Generation>();
 
-        public Int64 Count => generations.Values.Sum(v => v.Count);
+        public double Count => generations.Values.Sum(v => v.Count);
 
         public Population(IEnumerable<Generation> generations = null)
         {
@@ -44,7 +44,7 @@ namespace ClimateGame
 
         private void Prune()
         {
-            var emptyGenerations = generations.Where(p => p.Value.Count == 0).Select(p => p.Key).ToList();
+            var emptyGenerations = generations.Where(p => p.Value.Count < 1).Select(p => p.Key).ToList();
 
             foreach(var key in emptyGenerations)
             {

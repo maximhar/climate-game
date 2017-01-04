@@ -6,22 +6,22 @@ namespace ClimateGame
     {
         public UInt32 YearOfBirth { get; }
 
-        public Int64 Count { get;  }
+        public double Count { get;  }
 
         public UInt32 Age => World.Instance.Year - YearOfBirth;
 
-        public Generation(UInt32 yob, Int64 count)
+        public Generation(UInt32 yob, double count)
         {
             YearOfBirth = yob;
             Count = count;
         }
 
-        public Generation SetCount(Int64 count)
+        public Generation SetCount(double count)
         {
             return new Generation(YearOfBirth, count);
         }
 
-        public Generation AddCount(Int64 count)
+        public Generation AddCount(double count)
         {
             return new Generation(YearOfBirth, Count + count);
         }

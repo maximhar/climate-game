@@ -36,12 +36,12 @@ namespace ClimateGame
 
         public Generation ModifyGeneration(Generation gen)
         {
-            Int64 accDelta = 0;
+            double accDelta = 0;
 
             foreach(var modifier in modifiers)
             {
                 var newGen = modifier.ModifyGeneration(gen);
-                Int64 delta = newGen.Count - gen.Count;
+                double delta = newGen.Count - gen.Count;
                 accDelta += delta;
             }
 

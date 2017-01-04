@@ -28,7 +28,7 @@ namespace ClimateGame
         {
             double rate = (gen.Age >= startAge && gen.Age < endAge) ? 
                 k * Math.Exp(k2 * gen.Age - startAge) : .0;
-            Int64 change = (Int64)Math.Round(gen.Count * rate);
+            double change = gen.Count * rate;
             return gen.AddCount(change);
         }
     }

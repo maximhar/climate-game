@@ -4,11 +4,11 @@ namespace ClimateGame
 {
     internal class Stats
     {
-        public Int64 Population { get; set; }
+        public double Population { get; set; }
 
         internal void Print()
         {
-            Console.WriteLine($"World population: {Population}");
+            Console.WriteLine($"World population: {Math.Round(Population)}");
         }
     }
 }

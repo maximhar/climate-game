@@ -25,7 +25,7 @@ namespace ClimateGame
         public Generation CreateGeneration(Generation gen)
         {
             double rate = (gen.Age >= startAge && gen.Age < endAge) ? k : .0;
-            Int64 change = (Int64)Math.Round(gen.Count * rate);
+            double change = gen.Count * rate;
             return new Generation(World.Instance.Year, change);
         }
     }
