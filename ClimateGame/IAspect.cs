@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace ClimateGame
 {
-    interface IAspect
+    interface IAspect : ITickable
     {
         void Initialize();
-        void Tick();
     }
 }
