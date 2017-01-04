@@ -49,6 +49,7 @@
     <Compile Include="IAspect.cs" />
     <Compile Include="IPopulationCreator.cs" />
     <Compile Include="IPopulationModifier.cs" />
+    <Compile Include="MedicineAspect.cs" />
     <Compile Include="ModifierCollection.cs" />
     <Compile Include="Population.cs" />
     <Compile Include="PopulationAspect.cs" />
