@@ -10,18 +10,23 @@ namespace ClimateGame
     class MedicineAspect : IAspect
     {
         private DependentVariable<double> cancerK;
-        private DependentVariable<double> birthsK;
+        private DependentVariable<double> heartK;
+        private DependentVariable<double> respiratoryK;
+        private DependentVariable<double> neuralK;
 
         public void Initialize()
         {
-            cancerK = World.Instance.DependencyManager.GetDouble(Mix(Cancer, ParamK));
-            birthsK = World.Instance.DependencyManager.GetDouble(Mix(Birth, ParamK));
+            var dm = World.Instance.DependencyManager;
+            cancerK = dm.GetDouble(Mix(Cancer, ParamO));
+            heartK = dm.GetDouble(Mix(Heart, ParamO));
+            respiratoryK = dm.GetDouble(Mix(Respiratory, ParamO));
+            neuralK = dm.GetDouble(Mix(Nervous, ParamO));
 
-            // slowly cure cancer
-            cancerK.AttachSource(dv => dv.LastValue * 0.999);
-
-            // slowly reduce birthrate
-            birthsK.AttachSource(dv => dv.LastValue * 1.001);
+            // slowly cure all diseases
+            cancerK.AttachSource(dv => dv.LastValue + 0.2);
+            heartK.AttachSource(dv => dv.LastValue + 0.3);
+            respiratoryK.AttachSource(dv => dv.LastValue + 0.15);
+            neuralK.AttachSource(dv => dv.LastValue + 0.05);
         }
 
         public void Tick()
