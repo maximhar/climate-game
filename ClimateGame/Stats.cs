@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static ClimateGame.Names;
 
 namespace ClimateGame
 {
@@ -64,8 +65,8 @@ namespace ClimateGame
             row.Append('-', columnsMax-1);
             row.Append(Generations.OrderBy(g => g.YearOfBirth).First().Age);
             Console.WriteLine(row.ToString());
-            var cancerK = World.Instance.DependencyManager.GetDouble("Cancer.K");
-            var birthsK = World.Instance.DependencyManager.GetDouble("Births.K");
+            var cancerK = World.Instance.DependencyManager.GetDouble(Mix(Cancer, ParamK));
+            var birthsK = World.Instance.DependencyManager.GetDouble(Mix(Birth, ParamK));
             Console.WriteLine($"Birth rate: {birthsK.LastValue}");
             Console.WriteLine($"Cancer rate: {cancerK.LastValue}");
         }

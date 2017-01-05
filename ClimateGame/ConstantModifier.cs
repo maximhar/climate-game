@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ClimateGame.Names;
 
 namespace ClimateGame
 {
@@ -17,7 +18,7 @@ namespace ClimateGame
         public ConstantModifier(string name, double k, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
         {
             Name = name;
-            K = World.Instance.DependencyManager.GetDouble(name + ".K", k);
+            K = World.Instance.DependencyManager.GetDouble(Mix(name, ParamK), k);
             StartAge = startAge;
             EndAge = endAge;
         }

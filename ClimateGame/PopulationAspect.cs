@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ClimateGame.Names;
 
 namespace ClimateGame
 {
@@ -23,20 +24,20 @@ namespace ClimateGame
                     new Generation(1996, 1000000)
                 });
 
-            popModifiers = new ModifierCollection("Modifiers", true,
+            popModifiers = new ModifierCollection(PopulationModifiers, true,
                 new List<IPopulationModifier>
                 {
-                     new ExponentialModifier("Cancer", -0.105, 0.08, 100.5),
-                     new ExponentialModifier("Heart", -0.093, 0.12, 97.0),
-                     new ExponentialModifier("Respiratory", -0.055, 0.09, 105.0),
-                     new ExponentialModifier("Nervous", -0.031, 0.10, 105.0),
-                     new ConstantModifier("RoadAccidents", -0.00004, 18),
-                     new ConstantModifier("WorkAccidents", -0.000005, 18, 60),
-                     new ConstantModifier("Childhood", -0.005, 0, 5),
-                     new ConstantModifier("Crime", -0.00001, 18)
+                     new ExponentialModifier(Cancer, -0.105, 0.08, 100.5),
+                     new ExponentialModifier(Heart, -0.093, 0.12, 97.0),
+                     new ExponentialModifier(Respiratory, -0.055, 0.09, 105.0),
+                     new ExponentialModifier(Nervous, -0.031, 0.10, 105.0),
+                     new ConstantModifier(RoadAccidents, -0.00004, 18),
+                     new ConstantModifier(WorkAccidents, -0.000005, 18, 60),
+                     new ConstantModifier(Childhood, -0.005, 0, 5),
+                     new ConstantModifier(Crime, -0.00001, 18)
                 });
 
-            popCreator = new ConstantCreator("Births", (double)(0.5*2.1) / (40 - 15), 15, 40);
+            popCreator = new ConstantCreator(Birth, (double)(0.5*2.1) / (40 - 15), 15, 40);
         }
 
         public void Tick()

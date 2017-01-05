@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ClimateGame.Names;
 
 namespace ClimateGame
 {
@@ -13,8 +14,8 @@ namespace ClimateGame
 
         public void Initialize()
         {
-            cancerK = World.Instance.DependencyManager.GetDouble("Cancer.K");
-            birthsK = World.Instance.DependencyManager.GetDouble("Births.K");
+            cancerK = World.Instance.DependencyManager.GetDouble(Mix(Cancer, ParamK));
+            birthsK = World.Instance.DependencyManager.GetDouble(Mix(Birth, ParamK));
 
             // slowly cure cancer
             cancerK.AttachSource(dv => dv.LastValue * 0.999);

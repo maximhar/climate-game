@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ClimateGame.Names;
 
 namespace ClimateGame
 {
@@ -23,9 +24,9 @@ namespace ClimateGame
         public ExponentialModifier(String name, double k, double k2, double o, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
         {
             Name = Name;
-            K = World.Instance.DependencyManager.GetDouble(name + ".K", k);
-            K2 = World.Instance.DependencyManager.GetDouble(name + ".K2", k2);
-            O = World.Instance.DependencyManager.GetDouble(name + ".O", o);
+            K = World.Instance.DependencyManager.GetDouble(Mix(name, ParamK), k);
+            K2 = World.Instance.DependencyManager.GetDouble(Mix(name, ParamK2), k2);
+            O = World.Instance.DependencyManager.GetDouble(Mix(name, ParamO), o);
             StartAge = startAge;
             EndAge = endAge;
         }

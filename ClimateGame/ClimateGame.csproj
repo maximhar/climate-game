@@ -54,6 +54,7 @@
     <Compile Include="ITickable.cs" />
     <Compile Include="MedicineAspect.cs" />
     <Compile Include="ModifierCollection.cs" />
+    <Compile Include="Names.cs" />
     <Compile Include="Population.cs" />
     <Compile Include="PopulationAspect.cs" />
     <Compile Include="Program.cs" />
