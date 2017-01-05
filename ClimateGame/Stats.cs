@@ -65,10 +65,14 @@ namespace ClimateGame
             row.Append('-', columnsMax-1);
             row.Append(Generations.OrderBy(g => g.YearOfBirth).First().Age);
             Console.WriteLine(row.ToString());
-            var cancerK = World.Instance.DependencyManager.GetDouble(Mix(Cancer, ParamK));
-            var birthsK = World.Instance.DependencyManager.GetDouble(Mix(Birth, ParamK));
-            Console.WriteLine($"Birth rate: {birthsK.LastValue}");
-            Console.WriteLine($"Cancer rate: {cancerK.LastValue}");
+            var dm = World.Instance.DependencyManager;
+            Console.WriteLine($"Birth rate: {dm.GetDouble(Mix(Birth, ParamK)).LastValue}");
+            Console.WriteLine($"Cancer rate: {dm.GetDouble(Mix(Cancer, ParamO)).LastValue}");
+            Console.WriteLine($"Heart rate: {dm.GetDouble(Mix(Heart, ParamO)).LastValue}");
+            Console.WriteLine($"Respiratory rate: {dm.GetDouble(Mix(Respiratory, ParamO)).LastValue}");
+            Console.WriteLine($"Nervous rate: {dm.GetDouble(Mix(Nervous, ParamO)).LastValue}");
+            Console.WriteLine($"Year: {World.Instance.Year}");
+
         }
     }
 }
