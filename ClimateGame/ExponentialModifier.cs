@@ -24,9 +24,9 @@ namespace ClimateGame
         public ExponentialModifier(String name, double k, double k2, double o, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
         {
             Name = Name;
-            K = World.Instance.DependencyManager.GetDouble(Mix(name, ParamK), k);
-            K2 = World.Instance.DependencyManager.GetDouble(Mix(name, ParamK2), k2);
-            O = World.Instance.DependencyManager.GetDouble(Mix(name, ParamO), o);
+            K = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamK), k);
+            K2 = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamK2), k2);
+            O = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamO), o);
             StartAge = startAge;
             EndAge = endAge;
         }

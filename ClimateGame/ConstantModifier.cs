@@ -18,7 +18,7 @@ namespace ClimateGame
         public ConstantModifier(string name, double k, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
         {
             Name = name;
-            K = World.Instance.DependencyManager.GetDouble(Mix(name, ParamK), k);
+            K = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamK), k);
             StartAge = startAge;
             EndAge = endAge;
         }
