@@ -10,22 +10,20 @@ namespace ClimateGame
     class ConstantModifier : IPopulationModifier
     {
         public DependentVariable<double> K { get; set; }
-        public UInt32 StartAge { get; set; }
-        public UInt32 EndAge { get; set; }
+        public AgeRange Range { get; }
 
         public string Name { get; }
 
-        public ConstantModifier(string name, double k, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
+        public ConstantModifier(string name, double k, AgeRange ageRange)
         {
             Name = name;
             K = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamK), k);
-            StartAge = startAge;
-            EndAge = endAge;
+            Range = ageRange;
         }
 
         public Generation ModifyGeneration(Generation gen)
         {
-            double rate = (gen.Age >= StartAge && gen.Age < EndAge) ? K : .0;
+            double rate = Range.Contains(gen.Age) ? K : .0;
             double change = gen.Count * rate;
             return gen.AddCount(change);
         }

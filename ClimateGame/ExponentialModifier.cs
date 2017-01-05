@@ -16,24 +16,22 @@ namespace ClimateGame
         // Offset (shifts the function left/right, but leaves slope shape the same)
         public DependentVariable<double> O { get; set; }
 
-        public UInt32 StartAge { get; set; }
-        public UInt32 EndAge { get; set; }
+        public AgeRange Range { get; }
 
         public string Name { get; }
 
-        public ExponentialModifier(String name, double k, double k2, double o, UInt32 startAge = 0, UInt32 endAge = UInt32.MaxValue)
+        public ExponentialModifier(String name, double k, double k2, double o, AgeRange ageRange)
         {
             Name = Name;
             K = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamK), k);
             K2 = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamK2), k2);
             O = World.Instance.DependencyManager.CreateDouble(Mix(name, ParamO), o);
-            StartAge = startAge;
-            EndAge = endAge;
+            Range = ageRange;
         }
 
         public Generation ModifyGeneration(Generation gen)
         {
-            double rate = (gen.Age >= StartAge && gen.Age < EndAge) ? 
+            double rate = Range.Contains(gen.Age) ? 
                 K * Math.Exp(K2 * (gen.Age - O)) : .0;
             double change = gen.Count * rate;
             return gen.AddCount(change);

@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AgeRange.cs" />
     <Compile Include="ConstantCreator.cs" />
     <Compile Include="ConstantModifier.cs" />
     <Compile Include="DependencyManager.cs" />
