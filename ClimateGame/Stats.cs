@@ -14,8 +14,22 @@ namespace ClimateGame
         public void Print()
         {
             Console.Clear();
+
             PrintPyramid();
-            Console.WriteLine($"World population: {Math.Round(Population)}");
+
+            var dm = World.Instance.DependencyManager;
+            Console.WriteLine($"Year: {World.Instance.Year}");
+
+            Console.WriteLine($"Birth rate: {dm.GetDouble(Mix(Birth, ParamK)).LastValue}");
+            Console.WriteLine($"Cancer rate: {dm.GetDouble(Mix(Cancer, ParamO)).LastValue}");
+            Console.WriteLine($"Heart rate: {dm.GetDouble(Mix(Heart, ParamO)).LastValue}");
+            Console.WriteLine($"Respiratory rate: {dm.GetDouble(Mix(Respiratory, ParamO)).LastValue}");
+            Console.WriteLine($"Nervous rate: {dm.GetDouble(Mix(Nervous, ParamO)).LastValue}");
+
+            Console.WriteLine($"Children: {Math.Round(dm.GetDouble(ChildPopulation))}");
+            Console.WriteLine($"Working: {Math.Round(dm.GetDouble(WorkingPopulation))}");
+            Console.WriteLine($"Elderly: {Math.Round(dm.GetDouble(ElderlyPopulation))}");
+            Console.WriteLine($"Total: {Math.Round(Population)}");
         }
 
         private void PrintPyramid()
@@ -65,14 +79,6 @@ namespace ClimateGame
             row.Append('-', columnsMax-1);
             row.Append(Generations.OrderBy(g => g.YearOfBirth).First().Age);
             Console.WriteLine(row.ToString());
-            var dm = World.Instance.DependencyManager;
-            Console.WriteLine($"Birth rate: {dm.GetDouble(Mix(Birth, ParamK)).LastValue}");
-            Console.WriteLine($"Cancer rate: {dm.GetDouble(Mix(Cancer, ParamO)).LastValue}");
-            Console.WriteLine($"Heart rate: {dm.GetDouble(Mix(Heart, ParamO)).LastValue}");
-            Console.WriteLine($"Respiratory rate: {dm.GetDouble(Mix(Respiratory, ParamO)).LastValue}");
-            Console.WriteLine($"Nervous rate: {dm.GetDouble(Mix(Nervous, ParamO)).LastValue}");
-            Console.WriteLine($"Year: {World.Instance.Year}");
-
         }
     }
 }

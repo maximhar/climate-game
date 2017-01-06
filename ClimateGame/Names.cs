@@ -22,6 +22,10 @@ namespace ClimateGame
         public const string ParamK2 = "K2";
         public const string ParamO = "O";
 
+        public const string ChildPopulation = "ChildPopulation";
+        public const string WorkingPopulation = "WorkingPopulation";
+        public const string ElderlyPopulation = "ElderlyPopulation";
+
 
         public static string Mix(string parent, string child)
         {

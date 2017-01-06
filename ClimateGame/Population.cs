@@ -12,6 +12,8 @@ namespace ClimateGame
 
         public double Count => generations.Values.Sum(v => v.Count);
 
+        public IEnumerable<Generation> Generations => generations.Values;
+
         public Population(IEnumerable<Generation> generations = null)
         {
             if (generations != null)
