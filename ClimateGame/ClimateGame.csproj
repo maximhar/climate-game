@@ -47,6 +47,7 @@
     <Compile Include="ConstantModifier.cs" />
     <Compile Include="DependencyManager.cs" />
     <Compile Include="DependentVariable.cs" />
+    <Compile Include="EconomyAspect.cs" />
     <Compile Include="ExponentialModifier.cs" />
     <Compile Include="Generation.cs" />
     <Compile Include="IAspect.cs" />

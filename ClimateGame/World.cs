@@ -12,6 +12,7 @@ namespace ClimateGame
 
         private PopulationAspect populationAspect = new PopulationAspect();
         private MedicineAspect medicineAspect = new MedicineAspect();
+        private EconomyAspect economyAspect = new EconomyAspect();
 
         private World()
         { }
@@ -34,6 +35,7 @@ namespace ClimateGame
             DependencyManager = new DependencyManager();
             populationAspect.Initialize();
             medicineAspect.Initialize();
+            economyAspect.Initialize();
         }
 
         public void Tick()
@@ -42,9 +44,10 @@ namespace ClimateGame
 
             populationAspect.Tick();
             medicineAspect.Tick();
+            economyAspect.Tick();
 
-            DependencyManager.Tick();
             Stats.Print();
+            DependencyManager.Tick();
         }
     }
 }

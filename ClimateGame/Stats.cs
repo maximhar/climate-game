@@ -20,16 +20,21 @@ namespace ClimateGame
             var dm = World.Instance.DependencyManager;
             Console.WriteLine($"Year: {World.Instance.Year}");
 
-            Console.WriteLine($"Birth rate: {dm.GetDouble(Mix(Birth, ParamK)).LastValue}");
-            Console.WriteLine($"Cancer rate: {dm.GetDouble(Mix(Cancer, ParamO)).LastValue}");
-            Console.WriteLine($"Heart rate: {dm.GetDouble(Mix(Heart, ParamO)).LastValue}");
-            Console.WriteLine($"Respiratory rate: {dm.GetDouble(Mix(Respiratory, ParamO)).LastValue}");
-            Console.WriteLine($"Nervous rate: {dm.GetDouble(Mix(Nervous, ParamO)).LastValue}");
+            Console.WriteLine($"Birth rate: {dm.GetDouble(Mix(Birth, ParamK)).Evaluate()}");
+            Console.WriteLine($"Cancer rate: {dm.GetDouble(Mix(Cancer, ParamO)).Evaluate()}");
+            Console.WriteLine($"Heart rate: {dm.GetDouble(Mix(Heart, ParamO)).Evaluate()}");
+            Console.WriteLine($"Respiratory rate: {dm.GetDouble(Mix(Respiratory, ParamO)).Evaluate()}");
+            Console.WriteLine($"Nervous rate: {dm.GetDouble(Mix(Nervous, ParamO)).Evaluate()}");
 
-            Console.WriteLine($"Children: {Math.Round(dm.GetDouble(ChildPopulation))}");
-            Console.WriteLine($"Working: {Math.Round(dm.GetDouble(WorkingPopulation))}");
-            Console.WriteLine($"Elderly: {Math.Round(dm.GetDouble(ElderlyPopulation))}");
-            Console.WriteLine($"Total: {Math.Round(Population)}");
+            Console.WriteLine($"Children: {Math.Round(dm.GetDouble(ChildPopulation)):N0}");
+            Console.WriteLine($"Working: {Math.Round(dm.GetDouble(WorkingPopulation)):N0}");
+            Console.WriteLine($"Elderly: {Math.Round(dm.GetDouble(ElderlyPopulation)):N0}");
+            Console.WriteLine($"Total: {Math.Round(Population):N0}");
+
+            var gdp = dm.GetDouble(GDP);
+            var last = gdp.History.Count > 1 ? gdp.History[1] : 0;
+            var growth = last != 0 ? (gdp.Evaluate() - last) / last : 0;
+            Console.WriteLine("GDP: B${0:N}, Growth: {1:0.00%}", Math.Round(gdp.Evaluate()) / (1000*1000), growth);
         }
 
         private void PrintPyramid()
