@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ClimateGame
 {
@@ -9,6 +10,8 @@ namespace ClimateGame
 
         public string Name { get; }
         public T LastValue { get; private set; }
+
+        public ValueHistory<T> History { get; set; }
 
         public DependentVariable(string name, T initial)
         {
@@ -27,6 +30,8 @@ namespace ClimateGame
             {
                 LastValue = source(this);
                 evaluated = true;
+
+                AddToHistory(LastValue);
             }
 
             return LastValue;
@@ -40,6 +45,13 @@ namespace ClimateGame
         public static implicit operator T(DependentVariable<T> dv)
         {
             return dv.Evaluate();
+        }
+        private void AddToHistory(T value)
+        {
+            if (History != null)
+            {
+                History.Add(value);
+            }
         }
     }
 }
