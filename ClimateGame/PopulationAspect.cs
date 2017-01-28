@@ -23,14 +23,15 @@ namespace ClimateGame
 
         public void Initialize()
         {
-            population = new Population(
-                new List<Generation>
-                {
-                    new Generation(1999, 1000000),
-                    new Generation(1998, 1000000),
-                    new Generation(1997, 1000000),
-                    new Generation(1996, 1000000)
-                });
+            // Initialise the generations in the population
+            var initialGenerations = new List<Generation>();
+            uint startYear = World.Instance.Year;
+            for (uint i = 0; i < 80; i++)
+            {
+                initialGenerations.Add(new Generation(startYear - i, 1000000));
+            }
+
+            population = new Population(initialGenerations);
 
             popModifiers = new ModifierCollection(PopulationModifiers, true,
                 new List<IPopulationModifier>
