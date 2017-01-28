@@ -27,6 +27,7 @@ namespace ClimateGame
         public const string ElderlyPopulation = "ElderlyPopulation";
 
         public const string GDP = "GDP";
+        public const string Debt = "Debt";
 
         public static string Mix(string parent, string child)
         {
