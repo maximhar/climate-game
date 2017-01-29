@@ -28,6 +28,10 @@ namespace ClimateGame
 
         public const string GDP = "GDP";
         public const string Debt = "Debt";
+        public const string Inflation = "Inflation";
+        public const string Employment = "Employment";
+        public const string PTC = "PTC";
+        public const string PTI = "PTI";
 
         public static string Mix(string parent, string child)
         {

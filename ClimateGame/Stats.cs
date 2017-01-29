@@ -33,11 +33,17 @@ namespace ClimateGame
 
             var gdp = dm.GetDouble(GDP);
             var debt = dm.GetDouble(Debt);
+            var inflation = dm.GetDouble(Inflation).Evaluate();
+            var employment = dm.GetDouble(Employment).Evaluate();
+            var ptc = dm.GetDouble(PTC).Evaluate();
+            var pti = dm.GetDouble(PTI).Evaluate();
             var last = gdp.History.Count > 1 ? gdp.History[1] : 0;
             var growth = last != 0 ? (gdp.Evaluate() - last) / last : 0;
             Console.WriteLine("GDP: B${0:N}, Growth: {1:0.00%}", Math.Round(gdp.Evaluate()) / (1000*1000), growth);
-            Console.WriteLine("GDP/capita: ${0:N}", Math.Round(gdp.Evaluate() / Population));
+            Console.WriteLine("GDP/capita: ${0:N}", Math.Round(1000 * gdp.Evaluate() / Population));
             Console.WriteLine("Debt: B${0:N}", Math.Round(debt.Evaluate()) / (1000 * 1000));
+            Console.WriteLine("Inflation: {0:0.0%}, Employment: {1:0.0%}", inflation, employment);
+            Console.WriteLine("PTI: {0:0.0%}, PTC: {1:0.0%}", pti, ptc);
         }
 
         private void PrintPyramid()

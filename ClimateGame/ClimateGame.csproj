@@ -49,6 +49,7 @@
     <Compile Include="DependentVariable.cs" />
     <Compile Include="EconomyAspect.cs" />
     <Compile Include="ExponentialModifier.cs" />
+    <Compile Include="GaussianRandom.cs" />
     <Compile Include="Generation.cs" />
     <Compile Include="IAspect.cs" />
     <Compile Include="IPopulationCreator.cs" />

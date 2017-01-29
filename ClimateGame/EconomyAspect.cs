@@ -3,99 +3,199 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ClimateGame.Names;
 
 namespace ClimateGame
 {
     class EconomyAspect : IAspect
     {
-        private double techLevel = 0;
-        private double techAdvance;
-
-        private double outlook = 0;
-
-        private double interestRate = 0.00;
+        // Represents the overall technological level of the economy
+        private double techLevel = 1;
+        // Represents the overall education level of the population
+        private double educationLevel = 1;
+        // Represents the overall development of the country infrastructure
+        private double infrastructureLevel = 1;
+        // Represents the basic production capacity of the economy, increased by investment.
+        private double basicCapacity = 1;
 
         private double gdp;
 
-        private double gdpPerWorker = 10000;
+        private double debt;
 
-        private double debt = 0;
-        
-        private double investment;
+        private double inflation;
 
+        private double employment = 0.50;
+
+        // Propensity to consume.
+        private double ptc = 0.8;
+        private const double ptcBase = 0.81;
+        // Propensity to invest;
+        private double pti = 0.2;
+        private const double ptiBase = 0.2;
+
+
+        private double WorkingPopulation => World.Instance.DependencyManager.GetDouble(Names.WorkingPopulation);
+
+        private double WorkerProductivity => basicCapacity* educationLevel * infrastructureLevel* techLevel;
+
+        private GaussianRandom gaussian = new GaussianRandom();
+
+        private double oldDemand = -1;
 
         public void Initialize()
         {
             var dm = World.Instance.DependencyManager;
-            var workingPopulation = dm.GetDouble(WorkingPopulation);
 
-            var gdpDV = dm.CreateDouble(GDP);
+            var gdpDV = dm.CreateDouble(Names.GDP);
             gdpDV.AttachSource(dv => gdp);
 
-            var debtDV = dm.CreateDouble(Debt);
+            var debtDV = dm.CreateDouble(Names.Debt);
             debtDV.AttachSource(dv => debt);
 
+            var inflationDV = dm.CreateDouble(Names.Inflation);
+            inflationDV.AttachSource(dv => inflation);
+
+            var employmentDV = dm.CreateDouble(Names.Employment);
+            employmentDV.AttachSource(dv => employment);
+
+            var ptiDV = dm.CreateDouble(Names.PTI);
+            ptiDV.AttachSource(dv => pti);
+
+            var ptcDV = dm.CreateDouble(Names.PTC);
+            ptcDV.AttachSource(dv => ptc);
+
             gdpDV.History = new ValueHistory<double>(10);
+
+            gdp = WorkingPopulation * employment * WorkerProductivity;
         }
 
         public void Tick()
         {
-            var dm = World.Instance.DependencyManager;
-            var workingPopulation = dm.GetDouble(WorkingPopulation);
+            ptc = TickPropensityToConsume(inflation);
 
-            techAdvance = 0.3;
-            techLevel += techAdvance;
+            // Maximum aggregate supply
+            double supplyMax = TickMaximumAggregateSupply();
 
-            // Semi-random investment outlook based on year
-            outlook = TickOutlook();
+            double demand = TickAggregateDemand();
 
-            // Calculate investment and debt
-            investment = TickInvestment();
+            if (oldDemand < 0)
+                oldDemand = demand;
 
-            gdp = workingPopulation * gdpPerWorker;
+            double supply = TickAggregateSupply(demand);
+
+            employment = TickEmployment(demand, supply, supplyMax, employment);
+
+            supply = TickAggregateSupply(demand);
+
+            gdp = (demand + supply) / 2;
+
+            inflation = TickInflation(gdp, supply);
+
+            pti = TickPropensityToInvest(inflation, demand, oldDemand);
+
+            gdp *= (1 - inflation);
+            debt *= (1 - inflation);
+
+            oldDemand = demand;
         }
 
-        private double TickOutlook()
+        private double TickPropensityToInvest(double inflation, double d, double od)
         {
-            double[] outlookCycle = { 1.0, 0.9, 0.8, 0.7, 0.7, 0.6, 0.6, 0.5, 0.5, 0.4, 0.4,
-                                      0.3, 0.3, 0.3, 0.3, 0.2, 0.2, 0.2, 0.2, 0.1, 0.0,
-                                     -0.1, -0.2, -0.3, -0.4, -0.5};
+            double deterministicFactor = 0;
+            if (inflation > 0.02)
+                deterministicFactor = 0.01;
+            else if (inflation < 0)
+                deterministicFactor = -0.01;
 
-            Random rand = new Random();
+            if (employment < 50)
+                deterministicFactor += 0.02;
+            else if (employment < 30)
+                deterministicFactor += 0.03;
+            else if (employment > 80)
+                deterministicFactor -= 0.01;
+            else if (employment > 90)
+                deterministicFactor -= 0.02;
 
-            uint outlookIndex = World.Instance.Year + (uint)rand.Next(5);
-          
+            double randomFactor = (gaussian.NextDouble() - 0.5) * 0.01;
 
-            double outlook = outlookCycle[outlookIndex % (outlookCycle.Length)];
-            outlook += techAdvance;
-          
-            return outlook * 0.05;
+            double ptcFactor = 0;
+            double ptcDelta = d - od;
+            ptcDelta = ptcDelta / od;
+
+            if (ptcDelta > 0)
+                ptcFactor = ptcDelta * 2;
+            else
+                ptcFactor = ptcDelta;
+
+            return Math.Max(Math.Min(ptiBase + ptiBase * deterministicFactor + ptiBase * randomFactor + ptiBase * ptcFactor, 1), 0);
         }
 
-        private double TickInvestment()
+        private double TickPropensityToConsume(double inflation)
         {
-            var dm = World.Instance.DependencyManager;
-            var workingPopulation = dm.GetDouble(WorkingPopulation);
+            double deterministicFactor = 0;
+            if (inflation > 0.02 && inflation < 0.06)
+                deterministicFactor = 0.01;
+            else if (inflation >= 0.06)
+                deterministicFactor = -0.01;
+            else if (inflation < -0.02)
+                deterministicFactor = -0.01;
 
-            // pay denbt
-            double interest = Math.Max(debt, 0) * interestRate;
-            debt -= interest;
-
-            double interestPerWorker = interest / workingPopulation;
-            gdpPerWorker -= interestPerWorker;
+            double randomFactor = (gaussian.NextDouble() - 0.5) * 0.03;
 
 
-            // add investments
-            double investment = outlook * gdpPerWorker;
-            debt += Math.Max(investment, 0) * workingPopulation;
 
-            gdpPerWorker += investment;
-
-            return investment;
+            return Math.Max(Math.Min(ptcBase + ptcBase*deterministicFactor + ptcBase*randomFactor, 1), 0);
         }
-       
 
+        private double TickInflation(double demand, double supply)
+        {
+            double delta = (demand - supply) / demand;
+            return delta;
+        }
 
+        private double TickEmployment(double demand, double supply, double maxSupply, double employment)
+        {
+            double delta = (demand - supply) / maxSupply;
+
+            double employmentChange = delta / 2;
+
+            employment += employmentChange;
+
+            return Math.Min(employment, 1);
+        }
+
+        private double TickAggregateSupply(double demand)
+        {
+            return WorkingPopulation * employment * WorkerProductivity;
+        }
+
+        private double TickAggregateDemand()
+        {
+            double income = gdp;
+            double consumption = income * ptc;
+            double investment = income * pti;
+
+            basicCapacity += ((investment / income) * 0.01);
+
+            double nonperformingLoans = debt * 0.01;
+
+            double demand = consumption + investment;
+            double loans = Math.Max(demand - income, 0);
+
+            debt += loans;
+
+            debt -= nonperformingLoans;
+            debt = Math.Max(0, debt);
+
+            demand -= nonperformingLoans;
+
+            return consumption + investment;
+        }
+
+        private double TickMaximumAggregateSupply()
+        {
+            double maxAS = WorkingPopulation * WorkerProductivity;
+
+            return maxAS;
+        }
     }
 }
