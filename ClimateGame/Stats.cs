@@ -53,7 +53,7 @@ namespace ClimateGame
                 Math.Round(governmentDebt.Evaluate()) / (1000 * 1000),
                 governmentDebtInterestRate.Evaluate());
             Console.WriteLine("Govt. expenditure: {0:0.0%}, taxation: {1:0.0%}", 
-                govtExpenditure.Evaluate(), govtTaxation.Evaluate());
+                govtExpenditure.Evaluate(), govtTaxation.Evaluate() + governmentDebtInterestRate.Evaluate());
         }
 
         private void PrintPyramid()

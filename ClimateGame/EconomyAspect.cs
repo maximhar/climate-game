@@ -19,7 +19,7 @@ namespace ClimateGame
         public double GovernmentDebtInterestRate => Math.Max((GovernmentNetDebt / GDP), 0) * GovernmentDebtInterestMultiplier;
 
         public double Employment { get; set; }
-        public double Inflation => (AggregateDemand - AggregateSupply) / AggregateSupply;
+        public double Inflation => Math.Max((AggregateDemand - AggregateSupply) / AggregateSupply, -1);
 
         public double ProductionCapacity { get; set; }
         public double InfrastructureModifier { get; set; }
@@ -152,14 +152,17 @@ namespace ClimateGame
         {
             double deterministicFactor = 0;
             // Inflation that is too high will dissuade investment
-            if (newState.Inflation > 0.10)
+            if (newState.Inflation > 0.10 && newState.Inflation < 0.20)
                 deterministicFactor = (newState.Inflation - 0.10) * -1;
+            // Extreme inflation really hammers down the point that inflation is bad for investment
+            else if (newState.Inflation >= 0.20)
+                deterministicFactor = (newState.Inflation - 0.16) * -2;
             // A moderate inflation will encourage investment
             else if (newState.Inflation > 0.01)
                 deterministicFactor = (newState.Inflation - 0.01);
             // Deflation will discourage investment
-            else if (newState.Inflation < 0)
-                deterministicFactor = newState.Inflation * -1;
+            else if (newState.Inflation < -0.02)
+                deterministicFactor = (newState.Inflation + 0.02) * 0.5;
 
             if (newState.Employment < 0.50)
                 deterministicFactor += 0.02;
@@ -168,7 +171,10 @@ namespace ClimateGame
 
             // Negative net debt implies lower interest rates, influencing investment positively
             if (newState.PrivateNetDebt < 0)
-                deterministicFactor += 0.02;
+            {
+                double gdpDebt = newState.PrivateNetDebt / newState.GDP;
+                deterministicFactor += gdpDebt * -0.2;
+            }
             // Debt over 90% of GDP influences investment negatively according to studies
             else if (newState.PrivateNetDebt / newState.GDP > 0.9)
                 deterministicFactor -= 0.02;
@@ -194,11 +200,14 @@ namespace ClimateGame
             if (state.Inflation > 0.02 && state.Inflation < 0.06)
                 deterministicFactor = (state.Inflation - 0.01);
             // High inflation influences consumption negatively as assets decrease in value
-            else if (state.Inflation >= 0.06)
-                deterministicFactor = (state.Inflation - 0.06) * -0.5;
+            else if (state.Inflation >= 0.06 && state.Inflation < 0.20)
+                deterministicFactor = (state.Inflation - 0.06) * -1;
+            // When inflation is extreme, punish PTC even more
+            else if (state.Inflation >= 0.20)
+                deterministicFactor = (state.Inflation - 0.12) * -2;
             // Deflation influences consumption negatively as consumers hoard wealth
             else if (state.Inflation < -0.02)
-                deterministicFactor = (state.Inflation + 0.02) * -0.5;
+                deterministicFactor = (state.Inflation + 0.02) * 0.5;
 
             // Negative net debt implies lower interest rates, influencing consumption positively
             if (state.PrivateNetDebt < 0)
