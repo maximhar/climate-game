@@ -277,11 +277,11 @@ namespace ClimateGame
 
             // Process government debt
             double governmentBalance = governmentExpenditure - governmentIncome;
-            state.GovernmentNetDebt -= govtDebtServicing;
             state.GovernmentNetDebt += governmentBalance;
 
             // Process private debt
             double privateBalance = privateExpenditure - privateIncome;
+            // Non-performing debts get removed from the debt ledger.
             state.PrivateNetDebt -= privateDebtServicing;
             state.PrivateNetDebt += privateBalance;
 
