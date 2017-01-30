@@ -6,196 +6,245 @@ using System.Threading.Tasks;
 
 namespace ClimateGame
 {
+    class EconomicState
+    {
+        public double PTI { get; set; }
+        public double PTC { get; set; }
+
+        public double Investment => PTI * AggregateDemand;
+        public double Consumption => PTC * AggregateDemand;
+
+        public double NetDebt { get; set; }
+        public double Employment { get; set; }
+        public double Inflation => (AggregateDemand - AggregateSupply) / AggregateSupply;
+
+        public double ProductionCapacity { get; set; }
+        public double InfrastructureModifier { get; set; }
+        public double EducationModifier { get; set; }
+        public double TechnologyModifier { get; set; }
+
+        public double WorkerProductivity =>
+            ProductionCapacity * EducationModifier * InfrastructureModifier * TechnologyModifier;
+
+        public double WorkingPopulation => 
+            World.Instance.DependencyManager.GetDouble(Names.WorkingPopulation);
+
+        public double MaximumAggregateSupply => WorkingPopulation * WorkerProductivity;
+        public double AggregateSupply => WorkingPopulation * Employment * WorkerProductivity;
+        public double AggregateDemand { get; set; }
+
+        public double GDP => AggregateDemand * (1 - Inflation);
+
+        public EconomicState(double aggregateDemand, double employment, double prodCapacity, 
+            double infModifier, double eduModifier, double techModifier,
+            double pti, double ptc, double netDebt = 0)
+        {
+            AggregateDemand = aggregateDemand;
+            Employment = employment;
+            ProductionCapacity = prodCapacity;
+            InfrastructureModifier = infModifier;
+            EducationModifier = eduModifier;
+            TechnologyModifier = techModifier;
+            PTI = pti;
+            PTC = ptc;
+            NetDebt = netDebt;
+        }
+
+        public EconomicState(EconomicState other) : 
+            this(other.AggregateDemand, other.Employment, other.ProductionCapacity, 
+                other.InfrastructureModifier, other.EducationModifier, other.TechnologyModifier,
+                other.PTI, other.PTC, other.NetDebt)
+        {
+        }
+    }
+
     class EconomyAspect : IAspect
     {
-        // Represents the overall technological level of the economy
-        private double techLevel = 1;
-        // Represents the overall education level of the population
-        private double educationLevel = 1;
-        // Represents the overall development of the country infrastructure
-        private double infrastructureLevel = 1;
-        // Represents the basic production capacity of the economy, increased by investment.
-        private double basicCapacity = 1;
+        private const double PtiBase = 0.2;
+        private const double PtcBase = 0.8;
 
-        private double gdp;
+        private const double InvestmentEffectOnSupply = 0.01;
+        private const double NonperformingLoansRate = 0.01;
 
-        private double debt;
-
-        private double inflation;
-
-        private double employment = 0.50;
-
-        // Propensity to consume.
-        private double ptc = 0.8;
-        private const double ptcBase = 0.81;
-        // Propensity to invest;
-        private double pti = 0.2;
-        private const double ptiBase = 0.2;
-
-
-        private double WorkingPopulation => World.Instance.DependencyManager.GetDouble(Names.WorkingPopulation);
-
-        private double WorkerProductivity => basicCapacity* educationLevel * infrastructureLevel* techLevel;
+        private const int EmploymentChangeDownwardDivisor = 3;
+        private const int EmploymentChangeUpwardDivisorLow = 2;
+        private const int EmploymentChangeUpwardDivisorMedium = 3;
+        private const int EmploymentChangeUpwardDivisorHigh = 4;
+        private const int EmploymentChangeUpwardDivisorVeryHigh = 6;
+        private const int EmploymentChangeUpwardDivisorExtreme = 12;
 
         private GaussianRandom gaussian = new GaussianRandom();
 
-        private double oldDemand = -1;
+        private EconomicState currentState;
 
         public void Initialize()
         {
             var dm = World.Instance.DependencyManager;
 
             var gdpDV = dm.CreateDouble(Names.GDP);
-            gdpDV.AttachSource(dv => gdp);
+            gdpDV.AttachSource(dv => currentState.GDP);
 
             var debtDV = dm.CreateDouble(Names.Debt);
-            debtDV.AttachSource(dv => debt);
+            debtDV.AttachSource(dv => currentState.NetDebt);
 
             var inflationDV = dm.CreateDouble(Names.Inflation);
-            inflationDV.AttachSource(dv => inflation);
+            inflationDV.AttachSource(dv => currentState.Inflation);
 
             var employmentDV = dm.CreateDouble(Names.Employment);
-            employmentDV.AttachSource(dv => employment);
+            employmentDV.AttachSource(dv => currentState.Employment);
 
             var ptiDV = dm.CreateDouble(Names.PTI);
-            ptiDV.AttachSource(dv => pti);
+            ptiDV.AttachSource(dv => currentState.PTI);
 
             var ptcDV = dm.CreateDouble(Names.PTC);
-            ptcDV.AttachSource(dv => ptc);
+            ptcDV.AttachSource(dv => currentState.PTC);
 
             gdpDV.History = new ValueHistory<double>(10);
 
-            gdp = WorkingPopulation * employment * WorkerProductivity;
+            // Start with demand and supply in balance.
+            currentState = new EconomicState(0, 0.50, 1000, 1, 1, 1, PtiBase, PtcBase);
+            currentState.AggregateDemand = currentState.AggregateSupply;
         }
 
         public void Tick()
         {
-            ptc = TickPropensityToConsume(inflation);
+            EconomicState newState = new EconomicState(currentState);
 
-            // Maximum aggregate supply
-            double supplyMax = TickMaximumAggregateSupply();
+            // Calculate demand, using the previous demand figure as income.
+            newState.AggregateDemand = TickAggregateDemand(newState);
 
-            double demand = TickAggregateDemand();
+            // Allow employment to adjust to the gap between demand and supply.
+            newState.Employment = TickEmployment(currentState);
+            
+            // PTC and PTI lag behind the general economy providing some inertia.
+            // Calculate them now so they can be used in the next tick.
+            newState.PTC = TickPropensityToConsume(currentState);
 
-            if (oldDemand < 0)
-                oldDemand = demand;
+            newState.PTI = TickPropensityToInvest(newState, currentState);
 
-            double supply = TickAggregateSupply(demand);
+            // Real net debt is scaled by inflation too.
+            newState.NetDebt *= (1 - newState.Inflation);
 
-            employment = TickEmployment(demand, supply, supplyMax, employment);
-
-            supply = TickAggregateSupply(demand);
-
-            gdp = (demand + supply) / 2;
-
-            inflation = TickInflation(gdp, supply);
-
-            pti = TickPropensityToInvest(inflation, demand, oldDemand);
-
-            gdp *= (1 - inflation);
-            debt *= (1 - inflation);
-
-            oldDemand = demand;
+            currentState = newState;
         }
 
-        private double TickPropensityToInvest(double inflation, double d, double od)
+        private double TickPropensityToInvest(EconomicState newState, EconomicState oldState)
         {
             double deterministicFactor = 0;
-            if (inflation > 0.02)
-                deterministicFactor = 0.01;
-            else if (inflation < 0)
-                deterministicFactor = -0.01;
+            // Inflation that is too high will dissuade investment
+            if (newState.Inflation > 0.10)
+                deterministicFactor = (newState.Inflation - 0.10) * -1;
+            // A moderate inflation will encourage investment
+            else if (newState.Inflation > 0.01)
+                deterministicFactor = (newState.Inflation - 0.01);
+            // Deflation will discourage investment
+            else if (newState.Inflation < 0)
+                deterministicFactor = newState.Inflation * -1;
 
-            if (employment < 50)
+            if (newState.Employment < 0.50)
                 deterministicFactor += 0.02;
-            else if (employment < 30)
+            else if (newState.Employment < 0.30)
                 deterministicFactor += 0.03;
-            else if (employment > 80)
-                deterministicFactor -= 0.01;
-            else if (employment > 90)
+
+            // Negative net debt implies lower interest rates, influencing investment positively
+            if (newState.NetDebt < 0)
+                deterministicFactor += 0.02;
+            // Debt over 90% of GDP influences investment negatively according to studies
+            else if (newState.NetDebt / newState.GDP > 0.9)
                 deterministicFactor -= 0.02;
 
             double randomFactor = (gaussian.NextDouble() - 0.5) * 0.01;
 
             double ptcFactor = 0;
-            double ptcDelta = d - od;
-            ptcDelta = ptcDelta / od;
+            double ptcDelta = newState.AggregateDemand - oldState.AggregateDemand;
+            ptcDelta = ptcDelta / oldState.AggregateDemand;
 
             if (ptcDelta > 0)
                 ptcFactor = ptcDelta * 2;
             else
                 ptcFactor = ptcDelta;
 
-            return Math.Max(Math.Min(ptiBase + ptiBase * deterministicFactor + ptiBase * randomFactor + ptiBase * ptcFactor, 1), 0);
+            return Math.Max(Math.Min(PtiBase + PtiBase * deterministicFactor + PtiBase * randomFactor + PtiBase * ptcFactor, 1), 0);
         }
 
-        private double TickPropensityToConsume(double inflation)
+        private double TickPropensityToConsume(EconomicState state)
         {
             double deterministicFactor = 0;
-            if (inflation > 0.02 && inflation < 0.06)
-                deterministicFactor = 0.01;
-            else if (inflation >= 0.06)
-                deterministicFactor = -0.01;
-            else if (inflation < -0.02)
-                deterministicFactor = -0.01;
+            // Mild inflation influences consumption positively 
+            if (state.Inflation > 0.02 && state.Inflation < 0.06)
+                deterministicFactor = (state.Inflation - 0.01);
+            // High inflation influences consumption negatively as assets decrease in value
+            else if (state.Inflation >= 0.06)
+                deterministicFactor = (state.Inflation - 0.06) * -0.5;
+            // Deflation influences consumption negatively as consumers hoard wealth
+            else if (state.Inflation < -0.02)
+                deterministicFactor = (state.Inflation + 0.02) * -0.5;
 
+            // Negative net debt implies lower interest rates, influencing consumption positively
+            if (state.NetDebt < 0)
+                deterministicFactor += 0.02;
+            // Debt over 90% of GDP influences consumption negatively according to studies
+            else if (state.NetDebt / state.GDP > 0.9)
+                deterministicFactor -= 0.02;
+
+            // Random fluctuations in demand, on a gaussian distribution
             double randomFactor = (gaussian.NextDouble() - 0.5) * 0.03;
 
-
-
-            return Math.Max(Math.Min(ptcBase + ptcBase*deterministicFactor + ptcBase*randomFactor, 1), 0);
+            return Math.Max(Math.Min(PtcBase + PtcBase*deterministicFactor + PtcBase*randomFactor, 1), 0);
         }
 
-        private double TickInflation(double demand, double supply)
+        private double TickEmployment(EconomicState state)
         {
-            double delta = (demand - supply) / demand;
-            return delta;
+            double demandSupplyDelta = (state.AggregateDemand - state.AggregateSupply) / state.MaximumAggregateSupply;
+
+            double employmentChange = 0;
+
+            // Change downwards is usually easier as it essentially represents layoffs.
+            if (demandSupplyDelta < 0)
+            {
+                employmentChange = demandSupplyDelta / EmploymentChangeDownwardDivisor;
+            }
+            // Change upwards is more nuanced. Depending on the supply of labour, it will become 
+            // more difficult.
+            else if (demandSupplyDelta > 0)
+            {
+                if (state.Employment < 0.50)
+                    employmentChange = demandSupplyDelta / EmploymentChangeUpwardDivisorLow;
+                else if (state.Employment < 0.70)
+                    employmentChange = demandSupplyDelta / EmploymentChangeUpwardDivisorMedium;
+                else if (state.Employment < 0.80)
+                    employmentChange = demandSupplyDelta / EmploymentChangeUpwardDivisorHigh;
+                else if (state.Employment < 0.90)
+                    employmentChange = demandSupplyDelta / EmploymentChangeUpwardDivisorVeryHigh;
+                else
+                    employmentChange = demandSupplyDelta / EmploymentChangeUpwardDivisorExtreme;
+            }
+
+            double employment = state.Employment + employmentChange;
+
+            // Restrict employment to 0 < Employment < 1.
+            return Math.Min(Math.Max(employment, 0), 1);
         }
-
-        private double TickEmployment(double demand, double supply, double maxSupply, double employment)
+        
+        private double TickAggregateDemand(EconomicState state)
         {
-            double delta = (demand - supply) / maxSupply;
+            // Allow investments from last year to expand production.
+            state.ProductionCapacity *= 1 + ((state.Investment / state.AggregateDemand) * InvestmentEffectOnSupply);
 
-            double employmentChange = delta / 2;
+            // Nonperforming loans impact GDP negatively.
+            double nonperformingLoans = state.NetDebt * NonperformingLoansRate;
 
-            employment += employmentChange;
+            double income = state.AggregateDemand;
+            double expenditure = state.Consumption + state.Investment - nonperformingLoans;
 
-            return Math.Min(employment, 1);
-        }
+            // Difference in income and expenditure will be taken as credit.
+            double credit = expenditure - income;
+            state.NetDebt += credit;
 
-        private double TickAggregateSupply(double demand)
-        {
-            return WorkingPopulation * employment * WorkerProductivity;
-        }
+            // Nonperforming loans are erased.
+            state.NetDebt -= nonperformingLoans;
 
-        private double TickAggregateDemand()
-        {
-            double income = gdp;
-            double consumption = income * ptc;
-            double investment = income * pti;
-
-            basicCapacity += ((investment / income) * 0.01);
-
-            double nonperformingLoans = debt * 0.01;
-
-            double demand = consumption + investment;
-            double loans = Math.Max(demand - income, 0);
-
-            debt += loans;
-
-            debt -= nonperformingLoans;
-            debt = Math.Max(0, debt);
-
-            demand -= nonperformingLoans;
-
-            return consumption + investment;
-        }
-
-        private double TickMaximumAggregateSupply()
-        {
-            double maxAS = WorkingPopulation * WorkerProductivity;
-
-            return maxAS;
+            return expenditure;
         }
     }
 }
