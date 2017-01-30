@@ -13,6 +13,7 @@ namespace ClimateGame
         private PopulationAspect populationAspect = new PopulationAspect();
         private MedicineAspect medicineAspect = new MedicineAspect();
         private EconomyAspect economyAspect = new EconomyAspect();
+        private GovernmentAspect governmentAspect = new GovernmentAspect();
 
         private World()
         { }
@@ -26,7 +27,10 @@ namespace ClimateGame
 
         public DependencyManager DependencyManager { get; private set; }
 
+        public GovernmentAspect Government => governmentAspect;
+
         public Stats Stats { get; private set; }
+
 
         public void Initialize()
         {
@@ -36,6 +40,7 @@ namespace ClimateGame
             populationAspect.Initialize();
             medicineAspect.Initialize();
             economyAspect.Initialize();
+            governmentAspect.Initialize();
         }
 
         public void Tick()
@@ -45,6 +50,7 @@ namespace ClimateGame
             populationAspect.Tick();
             medicineAspect.Tick();
             economyAspect.Tick();
+            governmentAspect.Tick();
 
             Stats.Print();
             DependencyManager.Tick();

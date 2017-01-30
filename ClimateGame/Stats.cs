@@ -32,7 +32,7 @@ namespace ClimateGame
             Console.WriteLine($"Total: {Math.Round(Population):N0}");
 
             var gdp = dm.GetDouble(GDP);
-            var debt = dm.GetDouble(Debt);
+            var debt = dm.GetDouble(PrivateNetDebt);
             var inflation = dm.GetDouble(Inflation).Evaluate();
             var employment = dm.GetDouble(Employment).Evaluate();
             var ptc = dm.GetDouble(PTC).Evaluate();
@@ -41,9 +41,19 @@ namespace ClimateGame
             var growth = last != 0 ? (gdp.Evaluate() - last) / last : 0;
             Console.WriteLine("GDP: B${0:N}, Growth: {1:0.00%}", Math.Round(gdp.Evaluate()) / (1000*1000), growth);
             Console.WriteLine("GDP/capita: ${0:N}", Math.Round(1000 * gdp.Evaluate() / Population));
-            Console.WriteLine("Debt: B${0:N}", Math.Round(debt.Evaluate()) / (1000 * 1000));
+            Console.WriteLine("Private Debt: B${0:N}", Math.Round(debt.Evaluate()) / (1000 * 1000));
             Console.WriteLine("Inflation: {0:0.0%}, Employment: {1:0.0%}", inflation, employment);
             Console.WriteLine("PTI: {0:0.0%}, PTC: {1:0.0%}", pti, ptc);
+
+            var governmentDebt = dm.GetDouble(Names.GovernmentNetDebt);
+            var governmentDebtInterestRate = dm.GetDouble(Names.GovernmentDebtInterestRate);
+            var govtTaxation = dm.GetDouble(Names.GovernmentTaxation);
+            var govtExpenditure = dm.GetDouble(Names.GovernmentExpenditure);
+            Console.WriteLine("Government Debt: B${0:N} (interest: {1:0.0%})", 
+                Math.Round(governmentDebt.Evaluate()) / (1000 * 1000),
+                governmentDebtInterestRate.Evaluate());
+            Console.WriteLine("Govt. expenditure: {0:0.0%}, taxation: {1:0.0%}", 
+                govtExpenditure.Evaluate(), govtTaxation.Evaluate());
         }
 
         private void PrintPyramid()

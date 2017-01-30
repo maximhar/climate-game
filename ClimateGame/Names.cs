@@ -27,11 +27,20 @@ namespace ClimateGame
         public const string ElderlyPopulation = "ElderlyPopulation";
 
         public const string GDP = "GDP";
-        public const string Debt = "Debt";
+        public const string PrivateNetDebt = "Debt";
         public const string Inflation = "Inflation";
         public const string Employment = "Employment";
         public const string PTC = "PTC";
         public const string PTI = "PTI";
+        
+        public const string GovernmentTaxation = "GovernmentTaxation";
+        public const string GovernmentExpenditure = "GovernmentExpenditure";
+
+        public const string GovernmentNetDebt = "GovernmentNetDebt";
+
+        public const string GovernmentDebtInterestRate = "GovernmentDebtInterest";
+
+        public const string GovernmentSpendingEfficiency = "GovernmentSpendingEfficiency";
 
         public static string Mix(string parent, string child)
         {

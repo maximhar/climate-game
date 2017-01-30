@@ -8,13 +8,16 @@ namespace ClimateGame
 {
     class EconomicState
     {
+        private const double GovernmentDebtInterestMultiplier = 0.1;
+
         public double PTI { get; set; }
         public double PTC { get; set; }
 
-        public double Investment => PTI * AggregateDemand;
-        public double Consumption => PTC * AggregateDemand;
+        public double PrivateNetDebt { get; set; }
 
-        public double NetDebt { get; set; }
+        public double GovernmentNetDebt { get; set; }
+        public double GovernmentDebtInterestRate => Math.Max((GovernmentNetDebt / GDP), 0) * GovernmentDebtInterestMultiplier;
+
         public double Employment { get; set; }
         public double Inflation => (AggregateDemand - AggregateSupply) / AggregateSupply;
 
@@ -29,6 +32,15 @@ namespace ClimateGame
         public double WorkingPopulation => 
             World.Instance.DependencyManager.GetDouble(Names.WorkingPopulation);
 
+        public double GovernmentTaxation =>
+            World.Instance.DependencyManager.GetDouble(Names.GovernmentTaxation);
+
+        public double GovernmentExpenditure =>
+            World.Instance.DependencyManager.GetDouble(Names.GovernmentExpenditure);
+
+        public double GovernmentSpendingEfficiency =>
+            World.Instance.DependencyManager.GetDouble(Names.GovernmentSpendingEfficiency);
+
         public double MaximumAggregateSupply => WorkingPopulation * WorkerProductivity;
         public double AggregateSupply => WorkingPopulation * Employment * WorkerProductivity;
         public double AggregateDemand { get; set; }
@@ -37,7 +49,7 @@ namespace ClimateGame
 
         public EconomicState(double aggregateDemand, double employment, double prodCapacity, 
             double infModifier, double eduModifier, double techModifier,
-            double pti, double ptc, double netDebt = 0)
+            double pti, double ptc, double privateNetDebt = 0, double governmentNetDebt = 0)
         {
             AggregateDemand = aggregateDemand;
             Employment = employment;
@@ -47,13 +59,14 @@ namespace ClimateGame
             TechnologyModifier = techModifier;
             PTI = pti;
             PTC = ptc;
-            NetDebt = netDebt;
+            PrivateNetDebt = privateNetDebt;
+            GovernmentNetDebt = governmentNetDebt;
         }
 
         public EconomicState(EconomicState other) : 
             this(other.AggregateDemand, other.Employment, other.ProductionCapacity, 
                 other.InfrastructureModifier, other.EducationModifier, other.TechnologyModifier,
-                other.PTI, other.PTC, other.NetDebt)
+                other.PTI, other.PTC, other.PrivateNetDebt, other.GovernmentNetDebt)
         {
         }
     }
@@ -84,8 +97,8 @@ namespace ClimateGame
             var gdpDV = dm.CreateDouble(Names.GDP);
             gdpDV.AttachSource(dv => currentState.GDP);
 
-            var debtDV = dm.CreateDouble(Names.Debt);
-            debtDV.AttachSource(dv => currentState.NetDebt);
+            var debtDV = dm.CreateDouble(Names.PrivateNetDebt);
+            debtDV.AttachSource(dv => currentState.PrivateNetDebt);
 
             var inflationDV = dm.CreateDouble(Names.Inflation);
             inflationDV.AttachSource(dv => currentState.Inflation);
@@ -98,6 +111,12 @@ namespace ClimateGame
 
             var ptcDV = dm.CreateDouble(Names.PTC);
             ptcDV.AttachSource(dv => currentState.PTC);
+
+            var governmentDebtDV = dm.CreateDouble(Names.GovernmentNetDebt);
+            governmentDebtDV.AttachSource(dv => currentState.GovernmentNetDebt);
+
+            var governmentDebtInterestDV = dm.CreateDouble(Names.GovernmentDebtInterestRate);
+            governmentDebtInterestDV.AttachSource(dv => currentState.GovernmentDebtInterestRate);
 
             gdpDV.History = new ValueHistory<double>(10);
 
@@ -123,7 +142,8 @@ namespace ClimateGame
             newState.PTI = TickPropensityToInvest(newState, currentState);
 
             // Real net debt is scaled by inflation too.
-            newState.NetDebt *= (1 - newState.Inflation);
+            newState.PrivateNetDebt *= (1 - newState.Inflation);
+            newState.GovernmentNetDebt *= (1 - newState.Inflation);
 
             currentState = newState;
         }
@@ -147,10 +167,10 @@ namespace ClimateGame
                 deterministicFactor += 0.03;
 
             // Negative net debt implies lower interest rates, influencing investment positively
-            if (newState.NetDebt < 0)
+            if (newState.PrivateNetDebt < 0)
                 deterministicFactor += 0.02;
             // Debt over 90% of GDP influences investment negatively according to studies
-            else if (newState.NetDebt / newState.GDP > 0.9)
+            else if (newState.PrivateNetDebt / newState.GDP > 0.9)
                 deterministicFactor -= 0.02;
 
             double randomFactor = (gaussian.NextDouble() - 0.5) * 0.01;
@@ -181,10 +201,10 @@ namespace ClimateGame
                 deterministicFactor = (state.Inflation + 0.02) * -0.5;
 
             // Negative net debt implies lower interest rates, influencing consumption positively
-            if (state.NetDebt < 0)
+            if (state.PrivateNetDebt < 0)
                 deterministicFactor += 0.02;
             // Debt over 90% of GDP influences consumption negatively according to studies
-            else if (state.NetDebt / state.GDP > 0.9)
+            else if (state.PrivateNetDebt / state.GDP > 0.9)
                 deterministicFactor -= 0.02;
 
             // Random fluctuations in demand, on a gaussian distribution
@@ -229,22 +249,45 @@ namespace ClimateGame
         private double TickAggregateDemand(EconomicState state)
         {
             // Allow investments from last year to expand production.
-            state.ProductionCapacity *= 1 + ((state.Investment / state.AggregateDemand) * InvestmentEffectOnSupply);
+            double privateIncome = state.AggregateDemand * (1 - state.GovernmentTaxation);
+            double governmentIncome = state.AggregateDemand * state.GovernmentTaxation;
 
-            // Nonperforming loans impact GDP negatively.
-            double nonperformingLoans = state.NetDebt * NonperformingLoansRate;
+            double investment = privateIncome * state.PTI;
+            double consumption = privateIncome * state.PTC;
 
-            double income = state.AggregateDemand;
-            double expenditure = state.Consumption + state.Investment - nonperformingLoans;
+            // Affect the maximum aggregate supply using a modifier.
+            state.ProductionCapacity *= 
+                1 + ((investment / state.MaximumAggregateSupply) * InvestmentEffectOnSupply);
 
-            // Difference in income and expenditure will be taken as credit.
-            double credit = expenditure - income;
-            state.NetDebt += credit;
+            // Calculate private debt servicing (nonperforming loans only, as the rest
+            // are effectively already part of the economic flow)
+            double privateDebtServicing =
+                Math.Max(state.PrivateNetDebt, 0) * NonperformingLoansRate;
 
-            // Nonperforming loans are erased.
-            state.NetDebt -= nonperformingLoans;
+            // Calculate government debt servicing
+            double govtDebtServicing = 
+                Math.Max(state.GovernmentNetDebt, 0) * state.GovernmentDebtInterestRate;
+            
+            // Calculate private expenditure.
+            double privateExpenditure = consumption + investment - privateDebtServicing;
 
-            return expenditure;
+            // Calculate government expenditure.
+            double governmentExpenditure = 
+                (state.GovernmentExpenditure * state.AggregateDemand) - govtDebtServicing;
+
+            // Process government debt
+            double governmentBalance = governmentExpenditure - governmentIncome;
+            state.GovernmentNetDebt -= govtDebtServicing;
+            state.GovernmentNetDebt += governmentBalance;
+
+            // Process private debt
+            double privateBalance = privateExpenditure - privateIncome;
+            state.PrivateNetDebt -= privateDebtServicing;
+            state.PrivateNetDebt += privateBalance;
+
+            // Aggregate demand is the sum of government (efficiency weighed) and private expenditure.
+            return privateExpenditure + 
+                state.GovernmentSpendingEfficiency * governmentExpenditure;
         }
     }
 }

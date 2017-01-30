@@ -51,6 +51,7 @@
     <Compile Include="ExponentialModifier.cs" />
     <Compile Include="GaussianRandom.cs" />
     <Compile Include="Generation.cs" />
+    <Compile Include="GovernmentAspect.cs" />
     <Compile Include="IAspect.cs" />
     <Compile Include="IPopulationCreator.cs" />
     <Compile Include="IPopulationModifier.cs" />
