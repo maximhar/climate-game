@@ -19,9 +19,10 @@ namespace ClimateGame
             LastValue = initial;
         }
 
-        public void AttachSource(Func<DependentVariable<T>, T>  sourceFunc)
+        public DependentVariable<T> AttachSource(Func<DependentVariable<T>, T>  sourceFunc)
         {
             source = sourceFunc;
+            return this;
         }
 
         public T Evaluate()
@@ -46,6 +47,7 @@ namespace ClimateGame
         {
             return dv.Evaluate();
         }
+
         private void AddToHistory(T value)
         {
             if (History != null)
